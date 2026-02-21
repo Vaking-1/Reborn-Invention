@@ -45,7 +45,7 @@ wss.on('connection', (ws) => {
         id: playerId, ws, name: msg.name ?? 'Joueur', ready: false
       };
       roomId = id;
-      send(ws, { type: 'SERVER_CREATED', serverId: id });
+      send(ws, { type: 'SERVER_CREATED', serverId: id, playerId: playerId });
       console.log(`[ROOM] Créée: ${id} par ${msg.name}`);
     }
 
