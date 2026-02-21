@@ -1213,12 +1213,12 @@ function updateGame(dt){
   });
   if(b.x-b.r<FX){
     if(b.y>gY1&&b.y<gY2){
-      if(multiMode){
-        // Seul l'hôte envoie le GOAL au serveur
-        if(isHost){
-          if(socket&&socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'GOAL',team:1}));
-        }
-      } else {
+      if(multiMode&&isHost){
+        // Hôte: envoie GOAL au serveur ET gère le reset local
+        if(socket&&socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'GOAL',team:1}));
+        startGoalReset(g); // l'hôte gère son propre reset ici
+        return; // stop le reste de updateGame
+      } else if(!multiMode){
         g.scoreB++;document.getElementById('score-bot').textContent=g.scoreB;
         showGoal('BOT GOAL!','var(--red)');
         startGoalReset(g);
@@ -1228,12 +1228,12 @@ function updateGame(dt){
   }
   if(b.x+b.r>FX+FW){
     if(b.y>gY1&&b.y<gY2){
-      if(multiMode){
-        // Seul l'hôte envoie le GOAL au serveur
-        if(isHost){
-          if(socket&&socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'GOAL',team:0}));
-        }
-      } else {
+      if(multiMode&&isHost){
+        // Hôte: envoie GOAL au serveur ET gère le reset local
+        if(socket&&socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'GOAL',team:0}));
+        startGoalReset(g); // l'hôte gère son propre reset ici
+        return; // stop le reste de updateGame
+      } else if(!multiMode){
         g.scoreP++;document.getElementById('score-player').textContent=g.scoreP;
         showGoal('BUT !','var(--accent)');
         startGoalReset(g);
@@ -1296,12 +1296,18 @@ function resetPositions(g){
     bot.x=g.FX+g.FW*(.72+i*.07);bot.y=g.FY+g.FH*(.28+i*.22);
     bot.vx=0;bot.vy=0;bot.angle=Math.PI;
   });
+  // Vider le cache HUD pour éviter que le timer reste figé
+  g._lastHUDSec=null;
+  // Vider les données de sync balle pour le non-hôte
+  if(g.ball){g.ball._sx=undefined;g.ball._sy=undefined;g.ball._svx=undefined;g.ball._svy=undefined;}
 }
 
 function startGoalReset(g){
   g.running=false;
   cancelAnimationFrame(g.animFrame);
   resetPositions(g);
+  // Envoyer immédiatement la position reset pendant le countdown
+  if(multiMode) sendPlayerUpdate();
   const el=document.getElementById('goal-countdown');
   const num=document.getElementById('gc-num');
   el.classList.add('show');
@@ -1575,7 +1581,7 @@ function gameLoop(ts){
   game.lastTime=ts;updateGame(dt);renderGame();
   if(multiMode){
     // Position joueur ~20fps
-    if(!game._lastPos||ts-game._lastPos>50){
+    if(!game._lastPos||ts-game._lastPos>33){
       sendPlayerUpdate();
       game._lastPos=ts;
     }
@@ -1593,8 +1599,10 @@ function gameLoop(ts){
 
 function endGame(){
   if(!game)return;game.running=false;cancelAnimationFrame(game.animFrame);
-  const win=game.scoreP>game.scoreB;
-  const draw=game.scoreP===game.scoreB;
+  // En multi, on compare avec scoreOpp; en solo avec scoreB (bots)
+  const oppScore = multiMode ? (game.scoreOpp||0) : game.scoreB;
+  const win=game.scoreP>oppScore;
+  const draw=game.scoreP===oppScore;
   let vakReward=0,xpReward=0;
   if(win){vakReward=15;xpReward=100+game.scoreP*20;}
   else if(draw){xpReward=40;}
@@ -1603,11 +1611,11 @@ function endGame(){
   if(xpReward>0){addXP(xpReward);}
   document.getElementById('end-result-text').textContent=win?'VICTOIRE !':draw?'ÉGALITÉ':'DÉFAITE';
   document.getElementById('end-result-text').className='er '+(win?'win':draw?'':'lose');
-  document.getElementById('end-final-score').textContent=`${game.scoreP} – ${game.scoreB}`;
+  document.getElementById('end-final-score').textContent=`${game.scoreP} – ${oppScore}`;
   document.getElementById('end-reward').textContent=win?`+${vakReward} VAK 🏆 · +${xpReward} XP`:`+${xpReward} XP`;
   // Notifier le serveur
   if(multiMode&&isHost&&socket&&socket.readyState===WebSocket.OPEN){
-    socket.send(JSON.stringify({type:'GAME_OVER',scoreA:game.scoreP,scoreB:game.scoreB}));
+    socket.send(JSON.stringify({type:'GAME_OVER',scoreA:game.scoreP,scoreB:oppScore}));
   }
   document.getElementById('es').classList.add('show');
 }
@@ -1720,19 +1728,20 @@ function handleServerMsg(msg) {
 
   if (msg.type === 'GOAL') {
     if (game) {
-      // Affichage du score selon l'équipe du joueur local
+      // Affichage du score : scoreA=équipe0, scoreB=équipe1
       const myScore = myTeam === 0 ? msg.scoreA : msg.scoreB;
       const oppScore = myTeam === 0 ? msg.scoreB : msg.scoreA;
       game.scoreP = myScore;
-      game.scoreB = oppScore;
+      game.scoreOpp = oppScore;
       document.getElementById('score-player').textContent = myScore;
       document.getElementById('score-bot').textContent = oppScore;
-      // On a marqué si notre équipe a scoré
       const iScored = (myTeam === 0 && msg.team === 0) || (myTeam === 1 && msg.team === 1);
       showGoal(iScored ? 'BUT ! 🎉' : 'ADVERSAIRE !', iScored ? 'var(--accent)' : 'var(--red)');
-      // L'hôte a déjà resetté la balle dans la physique, le non-hôte en a besoin
-      if (!isHost) resetBall(game);
-      startGoalReset(game);
+      // CRITIQUE: l'hôte NE doit PAS appeler startGoalReset ici car il le fait
+      // déjà dans la physique → sinon double boucle = score x200 + timer fou
+      if (!isHost) {
+        startGoalReset(game);
+      }
     }
   }
 
@@ -1811,6 +1820,7 @@ function sendPlayerUpdate() {
 
 // Dessin des joueurs distants
 function drawRemotePlayers(ctx) {
+  if (!game) return;
   Object.values(remotePlayers).forEach((rp) => {
     if (!rp || rp.x === undefined) return;
     const c1 = rp.c1 || (rp.team === 1 ? '#cc2200' : '#00b4ff');
