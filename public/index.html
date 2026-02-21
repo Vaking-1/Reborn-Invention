@@ -80,10 +80,10 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);ov
 #cdn{font-family:'Orbitron',sans-serif;font-size:120px;font-weight:900;color:#fff;text-shadow:0 0 40px var(--accent),0 0 80px var(--accent);animation:cp .9s ease-in-out infinite;}
 @keyframes cp{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
-#goa{position:fixed;inset:0;z-index:72;display:none;align-items:center;justify-content:center;pointer-events:none;}
-#goa.show{display:flex;animation:gi .25s ease-out;}
-#got{font-family:'Orbitron',sans-serif;font-size:clamp(42px,9vw,88px);font-weight:900;letter-spacing:8px;}
-@keyframes gi{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+#goa{position:fixed;inset:0;z-index:72;display:none;align-items:center;justify-content:center;pointer-events:none;flex-direction:column;gap:0;}
+#goa.show{display:flex;animation:gi .3s cubic-bezier(.175,.885,.32,1.275);}
+#got{font-family:'Orbitron',sans-serif;font-size:clamp(48px,8vw,96px);font-weight:900;letter-spacing:2px;text-align:center;line-height:1;padding:18px 48px;background:rgba(0,0,0,.55);border-radius:6px;border-top:3px solid currentColor;white-space:nowrap;}
+@keyframes gi{from{transform:scale(.3) translateY(-30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
 
 #pm{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;background:rgba(0,0,20,.75);backdrop-filter:blur(8px);}
 #pm.show{display:flex;}
@@ -278,11 +278,11 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);ov
 <div id="game-canvas"><canvas id="gameCanvas"></canvas></div>
 <div id="game-hud">
   <div class="hud-sc">
-    <div><div class="hud-t">VOUS</div><div class="hud-n" id="score-player">0</div></div>
+    <div><div class="hud-t" id="hud-team-a">VOUS</div><div class="hud-n" id="score-player">0</div></div>
     <div class="hud-div"></div>
     <div class="hud-tm" id="hud-timer">3:00</div>
     <div class="hud-div"></div>
-    <div><div class="hud-t">BOTS</div><div class="hud-n" id="score-bot">0</div></div>
+    <div><div class="hud-t" id="hud-team-b">BOTS</div><div class="hud-n" id="score-bot">0</div></div>
   </div>
   <div class="hud-bs">
     <div class="hud-bsb"><div class="hud-bsf" id="boost-fill" style="height:80%"></div></div>
@@ -1025,6 +1025,11 @@ function startGame(){
   document.getElementById('game-hud').style.display='block';
   document.getElementById('player-bar').style.display='none';
   document.getElementById('vak-display').style.display='none';
+  // Noms dans le HUD
+  if(!multiMode){
+    document.getElementById('hud-team-a').textContent=S.playerName||'VOUS';
+    document.getElementById('hud-team-b').textContent='BOTS';
+  }
   game=createGame(cvs);
   startCountdown();
 }
@@ -1042,7 +1047,7 @@ function createGame(cvs){
     running:false,paused:false,
     scoreP:0,scoreB:0,timeLeft:S.time,lastTime:0,wSpin:0,
     ball:{x:FX+FW/2,y:FY+FH/2,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,r:BR,spin:0},
-    player:{x:FX+FW*.22,y:FY+FH/2,vx:0,vy:0,w:CW,h:CH,boost:.8,angle:0,trail:[]},
+    player:{x:multiMode?(myTeam===0?FX+FW*.22:FX+FW*.78):FX+FW*.22,y:FY+FH/2,vx:0,vy:0,w:CW,h:CH,boost:.8,angle:myTeam===1?Math.PI:0,trail:[]},
     bots:[],_keys:{},
     particles:mkParticles(theme.particles,20,W,H,FX,FY,FW,FH),
     gFlash:0,gColor:'#fff',animFrame:null,
@@ -1160,7 +1165,11 @@ function updateGame(dt){
     ballCollide(bot,g.ball);
   });
 
-  if(!multiMode) ballCollide(p,g.ball);
+  // Collision joueur-ballon
+  ballCollide(p, g.ball);
+
+  // Collision joueurs distants avec ballon (hôte seulement)
+  if(multiMode) collideRemotePlayersWithBall();
 
   // Player-bot collisions (solo seulement)
   if(!multiMode) g.bots.forEach(bot=>{carCarCollide(p,bot);});
@@ -1259,7 +1268,7 @@ function resetPositions(g){
   // Reset ball
   resetBall(g);
   // Reset player position
-  g.player.x=g.FX+g.FW*.22;g.player.y=g.FY+g.FH/2;g.player.vx=0;g.player.vy=0;g.player.angle=0;
+  g.player.x=multiMode?(myTeam===0?g.FX+g.FW*.22:g.FX+g.FW*.78):g.FX+g.FW*.22;g.player.y=g.FY+g.FH/2;g.player.vx=0;g.player.vy=0;g.player.angle=myTeam===1?Math.PI:0;
   // Reset bots
   g.bots.forEach((bot,i)=>{
     bot.x=g.FX+g.FW*(.72+i*.07);bot.y=g.FY+g.FH*(.28+i*.22);
@@ -1536,9 +1545,16 @@ function drawDominus(ctx,w,h,c1,c2,wSpin,isPlayer){
 
 function showGoal(txt,color){
   const el=document.getElementById('goa'),t=document.getElementById('got');
-  t.textContent=txt;t.style.color=color||'#fff';t.style.textShadow=`0 0 40px ${color||'#fff'},0 0 80px ${color||'#fff'}`;
-  el.classList.add('show');if(game){game.gFlash=1.5;game.gColor=color||'#fff';}
-  setTimeout(()=>el.classList.remove('show'),2200);
+  t.textContent=txt;
+  t.style.color=color||'#fff';
+  t.style.borderColor=color||'#fff';
+  t.style.textShadow=`0 0 30px ${color||'#fff'}`;
+  el.classList.remove('show');
+  // Force reflow pour relancer l'animation
+  void el.offsetWidth;
+  el.classList.add('show');
+  if(game){game.gFlash=1.2;game.gColor=color||'#fff';}
+  setTimeout(()=>el.classList.remove('show'),2000);
 }
 
 function startCountdown(){
@@ -1610,8 +1626,10 @@ const WS_URL = location.hostname === 'localhost' || location.hostname === '127.0
 let socket = null;
 let isHost = false;
 let myPlayerId = null;
-let remotePlayers = {};
-let multiMode = false; // true quand on joue en multi
+let remotePlayers = {}; // { id: {x,y,angle,vx,vy,c1,c2,team,name} }
+let multiMode = false;
+let myTeam = 0; // 0 = équipe A (gauche), 1 = équipe B (droite)
+let roomPlayerList = []; // liste complète des joueurs de la room
 
 function connectToServer(onReady) {
   if (socket && socket.readyState === WebSocket.OPEN) { if (onReady) onReady(); return; }
@@ -1648,13 +1666,16 @@ function handleServerMsg(msg) {
   }
 
   if (msg.type === 'ROOM_UPDATE') {
-    const list = msg.players.map(p => `• ${p.name}${p.id === myPlayerId ? ' <span style="color:var(--accent)">(Vous)</span>' : ''}`).join('<br>');
-    document.getElementById('srv-members-list').innerHTML = list;
-    document.getElementById('srv-member-count').textContent = msg.players.length;
-    // Mettre à jour map/time reçus de l'hôte
+    roomPlayerList = msg.players || [];
+    const teamA = roomPlayerList.filter(p=>p.team===0);
+    const teamB = roomPlayerList.filter(p=>p.team===1);
+    const mkList = (arr) => arr.map(p=>`• ${p.name}${p.id===myPlayerId?' <span style="color:var(--accent)">(Vous)</span>':''}` ).join('<br>') || '(vide)';
+    document.getElementById('srv-members-list').innerHTML =
+      '<span style="color:var(--accent);font-size:10px">ÉQUIPE A 🔵</span><br>'+mkList(teamA)+
+      '<br><span style="color:var(--red);font-size:10px;margin-top:4px;display:block">ÉQUIPE B 🔴</span><br>'+mkList(teamB);
+    document.getElementById('srv-member-count').textContent = roomPlayerList.length;
     if (msg.map !== undefined) S.map = msg.map;
     if (msg.time !== undefined) S.time = msg.time;
-    // Cacher le bouton launch si pas hôte
     document.getElementById('launch-multi-btn').style.display = isHost ? '' : 'none';
   }
 
@@ -1662,10 +1683,20 @@ function handleServerMsg(msg) {
     S.map = msg.map; S.time = msg.time;
     multiMode = true;
     remotePlayers = {};
+    roomPlayerList = msg.players || [];
+    // Trouver mon équipe
+    const me = roomPlayerList.find(p => p.id === myPlayerId);
+    myTeam = me ? me.team : 0;
+    // Noms des équipes pour le HUD
+    const teamA = roomPlayerList.filter(p=>p.team===0).map(p=>p.name).join(' & ') || 'ÉQUIPE A';
+    const teamB = roomPlayerList.filter(p=>p.team===1).map(p=>p.name).join(' & ') || 'ÉQUIPE B';
+    document.getElementById('hud-team-a').textContent = teamA;
+    document.getElementById('hud-team-b').textContent = teamB;
     startGame();
   }
 
   if (msg.type === 'PLAYER_UPDATE') {
+    if (msg.id === myPlayerId) return; // ignore notre propre position
     remotePlayers[msg.id] = msg;
   }
 
@@ -1754,22 +1785,44 @@ function sendPlayerUpdate() {
     x: game.player.x, y: game.player.y,
     angle: game.player.angle,
     vx: game.player.vx, vy: game.player.vy,
-    c1: S.car.c1, c2: S.car.c2
+    c1: S.car.c1, c2: S.car.c2,
+    team: myTeam, name: S.playerName
   }));
 }
 
 // Dessin des joueurs distants
 function drawRemotePlayers(ctx) {
-  Object.values(remotePlayers).forEach((rp, i) => {
-    if (!rp) return;
-    const colors = ['#cc2200','#00cc55','#aa00ff','#ff9900'];
-    const c1 = rp.c1 || colors[i % colors.length];
+  Object.values(remotePlayers).forEach((rp) => {
+    if (!rp || rp.x === undefined) return;
+    const c1 = rp.c1 || (rp.team === 1 ? '#cc2200' : '#00b4ff');
     const c2 = rp.c2 || '#ffffff';
     drawGameCar(ctx, {
       x: rp.x, y: rp.y, angle: rp.angle,
       w: game.CW, h: game.CH,
-      trail: [], vx: rp.vx || 0, vy: rp.vy || 0
+      trail: [], vx: rp.vx || 0, vy: rp.vy || 0, model: 0
     }, c1, c2, game.wSpin, false);
+    // Nametag au-dessus du joueur
+    if (rp.name) {
+      ctx.save();
+      ctx.font = 'bold 11px Rajdhani, sans-serif';
+      ctx.textAlign = 'center';
+      const tw = ctx.measureText(rp.name).width;
+      ctx.fillStyle = rp.team === 1 ? 'rgba(200,40,0,.75)' : 'rgba(0,100,200,.75)';
+      ctx.fillRect(rp.x - tw/2 - 4, rp.y - game.CH*.85 - 16, tw + 8, 16);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(rp.name, rp.x, rp.y - game.CH*.85 - 4);
+      ctx.restore();
+    }
+  });
+}
+
+// Collision ballon avec joueurs distants (côté hôte seulement)
+function collideRemotePlayersWithBall() {
+  if (!isHost) return;
+  Object.values(remotePlayers).forEach(rp => {
+    if (!rp || rp.x === undefined) return;
+    const fakecar = {x: rp.x, y: rp.y, vx: (rp.vx||0), vy: (rp.vy||0), w: game.CW, h: game.CH};
+    ballCollide(fakecar, game.ball);
   });
 }
 
