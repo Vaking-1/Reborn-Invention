@@ -1025,20 +1025,21 @@ function createGame(cvs){
     particles:mkParticles(theme.particles,42,W,H,FX,FY,FW,FH),
     gFlash:0,gColor:'#fff',animFrame:null,
   };
-  // Bot personalities
-  const pers=['aggressive','defensive','balanced'];
-  const bc=['#cc2200','#cc5500','#991100'];
-  const bc2=['#440000','#443300','#330000'];
-  for(let i=0;i<S.bots;i++){
-    g.bots.push({
-      x:FX+FW*(.72+i*.07),y:FY+FH*(.28+i*.22),
-      vx:0,vy:0,w:CW,h:CH,
-      angle:Math.PI,boost:.8,trail:[],
-      pers:pers[i%3],col:bc[i%3],col2:bc2[i%3],
-      aiState:'chase',aiTimer:0,
-      // For Infinium wheel style variation
-      wheelOff:i*.3,
-    });
+  // Pas de bots en multijoueur
+  if(!multiMode){
+    const pers=['aggressive','defensive','balanced'];
+    const bc=['#cc2200','#cc5500','#991100'];
+    const bc2=['#440000','#443300','#330000'];
+    for(let i=0;i<S.bots;i++){
+      g.bots.push({
+        x:FX+FW*(.72+i*.07),y:FY+FH*(.28+i*.22),
+        vx:0,vy:0,w:CW,h:CH,
+        angle:Math.PI,boost:.8,trail:[],
+        pers:pers[i%3],col:bc[i%3],col2:bc2[i%3],
+        aiState:'chase',aiTimer:0,
+        wheelOff:i*.3,
+      });
+    }
   }
   return g;
 }
@@ -1079,7 +1080,8 @@ function updateGame(dt){
   // Wheel spin from player speed
   g.wSpin+=ps2*dt*.05;
 
-  // BOTS AI - each has unique behavior
+  // BOTS AI - each has unique behavior (solo seulement)
+  if(!multiMode)
   g.bots.forEach((bot,bi)=>{
     bot.aiTimer-=dt;
     const ball=g.ball;
@@ -1135,14 +1137,22 @@ function updateGame(dt){
     ballCollide(bot,g.ball);
   });
 
-  ballCollide(p,g.ball);
+  if(!multiMode) ballCollide(p,g.ball);
 
-  // Player-bot collisions
-  g.bots.forEach(bot=>{carCarCollide(p,bot);});
+  // Player-bot collisions (solo seulement)
+  if(!multiMode) g.bots.forEach(bot=>{carCarCollide(p,bot);});
   // Bot-bot collisions
   for(let i=0;i<g.bots.length;i++)for(let j=i+1;j<g.bots.length;j++)carCarCollide(g.bots[i],g.bots[j]);
 
-  // Ball
+  // Ball - seulement l'hôte gère la physique complète du ballon
+  if(multiMode&&!isHost){
+    // Non-host: le ballon est mis à jour par le serveur via BALL_UPDATE
+    // On met juste à jour le spin visuel
+    const b2=g.ball;
+    b2.spin+=Math.sqrt(b2.vx*b2.vx+b2.vy*b2.vy)*dt*.09;
+    updParticles(g.particles,g.theme.particles,g.W,g.H,g.FX,g.FY,g.FW,g.FH,dt);
+    return;
+  }
   const b=g.ball;
   b.x+=b.vx*dt*60;b.y+=b.vy*dt*60;
   b.vx*=.994;b.vy*=.994;
@@ -1523,7 +1533,7 @@ function handleServerMsg(msg) {
   if (msg.type === 'SERVER_CREATED') {
     document.getElementById('srv-id-display').textContent = msg.serverId;
     isHost = true;
-    myPlayerId = msg.playerId || myPlayerId;
+    myPlayerId = msg.playerId;
     notify('✅ Serveur créé ! ID : ' + msg.serverId);
   }
 
