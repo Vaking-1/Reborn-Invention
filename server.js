@@ -90,8 +90,18 @@ wss.on('connection', (ws) => {
       const room = rooms[roomId];
       if (!room || room.hostId !== playerId) return;
       room.started = true;
-      broadcast(room, { type: 'GAME_START', map: room.map, time: room.time });
-      console.log(`[ROOM] Partie lancée: ${roomId}`);
+      // Assigner les équipes automatiquement (alternance 0,1,0,1...)
+      const playerIds = Object.keys(room.players);
+      playerIds.forEach((pid, i) => {
+        room.players[pid].team = i % 2; // 0=A, 1=B
+      });
+      const playerList = playerIds.map(pid => ({
+        id: pid,
+        name: room.players[pid].name,
+        team: room.players[pid].team
+      }));
+      broadcast(room, { type: 'GAME_START', map: room.map, time: room.time, players: playerList });
+      console.log(`[ROOM] Partie lancée: ${roomId} avec ${playerIds.length} joueurs`);
     }
 
     // --- CONFIG MAP/TEMPS (hôte) ---
@@ -203,7 +213,11 @@ function broadcastExcept(room, excludeId, msg) {
     .forEach(p => send(p.ws, msg));
 }
 function getPlayerList(room) {
-  return Object.values(room.players).map(p => ({ id: p.id, name: p.name }));
+  return Object.values(room.players).map((p, i) => ({
+    id: p.id,
+    name: p.name,
+    team: p.team !== undefined ? p.team : i % 2
+  }));
 }
 
 // Nettoyage des rooms inactives toutes les 10min
