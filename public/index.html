@@ -2219,33 +2219,24 @@ function handleServerMsg(msg) {
   }
 
   if(msg.type==='PLAYER_LEFT'){
-    // Un joueur a quitté pendant la partie — victoire par forfait pour ceux qui restent
     if(!game||game._ended) return;
-    // Retirer le joueur distant de l'affichage
+    // Supprimer immédiatement le joueur de l'affichage
     if(game.remotePlayers && msg.playerId){
       delete game.remotePlayers[msg.playerId];
     }
-    // Forcer une victoire : on est le survivant
-    game._ended = true;
-    game.running = false;
+    // Stopper le jeu côté client
+    game._ended=true;
+    game.running=false;
     cancelAnimationFrame(game.animFrame);
     _clearGoalTimers();
     document.getElementById('goal-countdown').classList.remove('show');
-    // Afficher l'écran de fin avec victoire par forfait
-    const myScore  = myTeam===0?msg.scoreA:msg.scoreB;
-    const oppScore = myTeam===0?msg.scoreB:msg.scoreA;
-    game.scoreP   = myScore;
+    // Forcer victoire : le survivant gagne toujours
+    const myScore  = myTeam===0 ? msg.scoreA : msg.scoreB;
+    const oppScore = myTeam===0 ? msg.scoreB : msg.scoreA;
+    game.scoreP   = Math.max(myScore, oppScore+1); // garantit win > opp
     game.scoreOpp = oppScore;
-    const name = msg.name || 'Adversaire';
-    notify(`⚠️ ${name} a quitté la partie — Victoire par forfait !`);
-    // Petite pause pour laisser la notif s'afficher, puis écran fin
-    setTimeout(()=>{
-      if(!game) return;
-      // Forcer la victoire dans endGame
-      game.scoreP   = Math.max(myScore, oppScore + 1); // garantit victoire
-      game.scoreOpp = oppScore;
-      endGame();
-    }, 1200);
+    notify('\u26A0\uFE0F '+(msg.name||'Adversaire')+' a quitt\u00E9 \u2014 Victoire par forfait !');
+    setTimeout(()=>{ if(game) endGame(); }, 1500);
   }
 
   if(msg.type==='ERROR'){
