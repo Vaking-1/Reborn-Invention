@@ -453,8 +453,8 @@ body{
     <div class="news-line"></div>
     <div class="news-title-big">SAISON 1 EN COURS</div>
     <div class="news-date">SEMAINE 1 · ÉDITION SPÉCIALE</div>
-    <div class="news-img" style="position:relative;background:linear-gradient(135deg,rgba(30,20,5,.9),rgba(10,8,2,.95));border:1px solid var(--sep);">
-      <canvas id="newsCarCanvas" width="600" height="160" style="width:100%;height:100%;object-fit:contain;"></canvas>
+    <div class="news-img" style="position:relative;background:linear-gradient(135deg,rgba(10,15,30,.9),rgba(5,8,18,.95));border:1px solid var(--sep);height:clamp(70px,10vh,120px);">
+      <canvas id="newsCarCanvas" width="600" height="120" style="width:100%;height:100%;object-fit:contain;"></canvas>
     </div>
     <div class="news-body">
       Bienvenue dans <strong style="color:var(--hi)">Reborn Invention</strong> — le jeu de voitures le plus controversé du web.<br><br>
@@ -777,33 +777,63 @@ body{
 
 <!-- ADMIN PANEL -->
 <div id="admin-panel">
-  <div class="admin-box">
-    <div style="font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--hi);letter-spacing:4px;text-align:center;margin-bottom:4px">⭐ STAFF PANEL</div>
-    <div id="admin-login-section">
-      <div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px;text-align:center;margin-bottom:16px">ACCÈS RESTREINT</div>
-      <input id="admin-pw" type="password" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;font-family:'Rajdhani',sans-serif;font-size:15px;padding:10px 14px;outline:none;letter-spacing:2px;margin-bottom:10px;" placeholder="Mot de passe">
-      <div style="display:flex;gap:8px">
-        <button class="pbtn" style="font-size:12px;padding:9px 20px" onclick="checkAdminPw()">CONFIRMER</button>
-        <button class="bbtn" style="margin-top:0" onclick="closeAdmin()">FERMER</button>
+  <div style="width:420px;max-width:96vw;background:rgba(4,6,14,.98);border:1px solid rgba(80,160,255,.2);border-top:2px solid var(--hi);padding:0;overflow:hidden;">
+    <!-- Header -->
+    <div style="background:rgba(80,160,255,.06);border-bottom:1px solid rgba(80,160,255,.12);padding:20px 24px;display:flex;align-items:center;gap:14px;">
+      <div style="width:36px;height:36px;border:1px solid var(--hi);background:rgba(80,160,255,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">⚙</div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;letter-spacing:4px;color:#fff;text-transform:uppercase;">STAFF PANEL</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--hi);opacity:.6;margin-top:2px;">ACCÈS RESTREINT</div>
       </div>
+      <button onclick="closeAdmin()" style="margin-left:auto;background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);width:28px;height:28px;cursor:pointer;font-size:14px;transition:all .12s;flex-shrink:0;" onmouseenter="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.4)'">✕</button>
     </div>
-    <div id="admin-tools-section" style="display:none">
-      <div style="font-size:11px;color:var(--hi);letter-spacing:2px;text-align:center;margin-bottom:16px">✅ ACCÈS AUTORISÉ</div>
-      <div style="margin-bottom:12px">
-        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px">DONNER DES VAK</label>
-        <div style="display:flex;gap:8px">
-          <input id="admin-vak-amount" type="number" min="1" value="100" style="flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--hi);font-family:'Orbitron',sans-serif;font-size:14px;padding:8px 12px;outline:none;">
-          <button class="pbtn" style="font-size:12px;padding:9px 18px" onclick="adminGiveVak()">GIVE</button>
+
+    <div style="padding:24px;">
+      <!-- Login -->
+      <div id="admin-login-section">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(140,180,220,.4);text-align:center;margin-bottom:18px;">ENTREZ LE MOT DE PASSE</div>
+        <div style="position:relative;margin-bottom:14px;">
+          <input id="admin-pw" type="password"
+            style="width:100%;background:rgba(80,160,255,.05);border:1px solid rgba(80,160,255,.2);border-bottom:2px solid var(--hi);color:#fff;font-family:'Share Tech Mono',monospace;font-size:16px;padding:12px 16px;outline:none;letter-spacing:4px;"
+            placeholder="••••••••"
+            onkeydown="if(event.key==='Enter')checkAdminPw()">
         </div>
-      </div>
-      <div style="margin-bottom:12px">
-        <label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:6px">DONNER DE L'XP</label>
-        <div style="display:flex;gap:8px">
-          <input id="admin-xp-amount" type="number" min="1" value="500" style="flex:1;background:rgba(255,255,255,.06);border:1px solid var(--accent);font-family:'Orbitron',sans-serif;font-size:14px;padding:8px 12px;outline:none;">
-          <button class="pbtn" style="font-size:12px;padding:9px 18px;background:linear-gradient(135deg,var(--accent),#005588)" onclick="adminGiveXP()">GIVE</button>
+        <div style="display:flex;gap:10px;">
+          <button class="pbtn" style="flex:1;font-size:14px;padding:13px;" onclick="checkAdminPw()">CONFIRMER ▶</button>
         </div>
+        <div id="admin-pw-error" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red);text-align:center;margin-top:10px;min-height:16px;letter-spacing:2px;"></div>
       </div>
-      <button class="bbtn" style="margin-top:4px;width:100%" onclick="closeAdmin()">FERMER</button>
+
+      <!-- Tools -->
+      <div id="admin-tools-section" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;padding:10px 14px;background:rgba(68,204,119,.06);border:1px solid rgba(68,204,119,.2);">
+          <span style="font-size:14px;">✅</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:#44cc77;">ACCÈS AUTORISÉ</span>
+        </div>
+
+        <!-- VAK -->
+        <div style="margin-bottom:16px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(140,180,220,.5);margin-bottom:8px;">DONNER DES VAK</div>
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <input id="admin-vak-amount" type="number" min="1" value="100"
+              style="flex:1;background:rgba(80,160,255,.05);border:1px solid rgba(80,160,255,.2);border-bottom:2px solid var(--hi);color:var(--hi);font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;padding:10px 14px;outline:none;text-align:center;letter-spacing:2px;">
+            <button class="pbtn" style="font-size:13px;padding:10px 20px;white-space:nowrap;" onclick="adminGiveVak()">+ GIVE</button>
+          </div>
+        </div>
+
+        <!-- XP -->
+        <div style="margin-bottom:20px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(140,180,220,.5);margin-bottom:8px;">DONNER DE L'XP</div>
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <input id="admin-xp-amount" type="number" min="1" value="500"
+              style="flex:1;background:rgba(80,160,255,.05);border:1px solid rgba(80,160,255,.2);border-bottom:2px solid rgba(80,160,255,.5);color:var(--hi);font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;padding:10px 14px;outline:none;text-align:center;letter-spacing:2px;">
+            <button class="pbtn" style="font-size:13px;padding:10px 20px;white-space:nowrap;" onclick="adminGiveXP()">+ GIVE</button>
+          </div>
+        </div>
+
+        <div style="height:1px;background:rgba(80,160,255,.1);margin-bottom:16px;"></div>
+        <button class="bbtn" style="width:100%;padding:12px;" onclick="closeAdmin()">FERMER LE PANNEAU</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1048,7 +1078,19 @@ function saveProfile() {
 }
 function openAdmin() { document.getElementById('admin-panel').classList.add('show'); document.getElementById('admin-pw').value=''; document.getElementById('admin-login-section').style.display=''; document.getElementById('admin-tools-section').style.display='none'; }
 function closeAdmin() { document.getElementById('admin-panel').classList.remove('show'); }
-function checkAdminPw() { if(document.getElementById('admin-pw').value==='Vaking.'){document.getElementById('admin-login-section').style.display='none';document.getElementById('admin-tools-section').style.display='block';}else notify('❌ Mot de passe incorrect'); }
+function checkAdminPw() {
+  const err=document.getElementById('admin-pw-error');
+  if(document.getElementById('admin-pw').value==='Vaking.'){
+    document.getElementById('admin-login-section').style.display='none';
+    document.getElementById('admin-tools-section').style.display='block';
+    if(err) err.textContent='';
+  } else {
+    if(err) err.textContent='❌ MOT DE PASSE INCORRECT';
+    document.getElementById('admin-pw').value='';
+    document.getElementById('admin-pw').style.borderBottomColor='var(--red)';
+    setTimeout(()=>{ const el=document.getElementById('admin-pw'); if(el)el.style.borderBottomColor='var(--hi)'; },1000);
+  }
+}
 function adminGiveVak() { const a=parseInt(document.getElementById('admin-vak-amount').value)||100; S.vak+=a; save(); updateVak(); notify(`✅ +${a} VAK ajoutés`); }
 function adminGiveXP()  { const a=parseInt(document.getElementById('admin-xp-amount').value)||500; addXP(a); }
 
@@ -1545,42 +1587,94 @@ function updateGame(dt) {
     g.bots.forEach((bot,bi)=>{
       bot.aiTimer-=dt;
       const ball=g.ball;
+      const {FX,FY,FW,FH}=g;
+      // Buts : joueur tire vers droite (FX+FW), bots tirent vers gauche (FX)
+      const playerGoalX = FX;        // but à défendre (gauche)
+      const botGoalX    = FX+FW;     // but à attaquer (droite)
+      const goalCY      = FY+FH/2;
+
       if(bot.aiTimer<=0){
-        bot.aiTimer=.28+Math.random()*.35;
-        const db=Math.hypot(bot.x-ball.x,bot.y-ball.y);
-        if(bot.pers==='aggressive')bot.aiState=db<FW*.22?'attack':'chase';
-        else if(bot.pers==='defensive')bot.aiState=ball.x>FX+FW*.42?'chase':'defend';
-        else bot.aiState=db<FW*.4?'chase':'position';
+        bot.aiTimer = .18 + Math.random()*.22;
+        const db = Math.hypot(bot.x-ball.x, bot.y-ball.y);
+        const ballNearPlayerGoal = ball.x < FX+FW*.35;
+        const ballNearBotGoal    = ball.x > FX+FW*.65;
+
+        if(bot.pers==='aggressive'){
+          // Fonce toujours vers la balle pour shooter vers la droite
+          bot.aiState = db < FW*.55 ? 'attack' : 'chase';
+        } else if(bot.pers==='defensive'){
+          // Défend si la balle est près de leur but, sinon chase
+          bot.aiState = ballNearBotGoal ? 'defend' : (db < FW*.5 ? 'chase' : 'wait');
+        } else {
+          // Balanced : attaque si balle dans leur camp
+          bot.aiState = ball.x < FX+FW*.5 ? 'attack' : (db < FW*.45 ? 'chase' : 'position');
+        }
       }
-      let tx,ty;
-      if(bot.aiState==='chase'||bot.aiState==='attack'){
-        const pred=bot.pers==='aggressive'?.35+bi*.08:.5+bi*.1;
-        tx=ball.x+ball.vx*pred*32; ty=ball.y+ball.vy*pred*32;
-        tx=Math.max(FX+35,Math.min(FX+FW-35,tx)); ty=Math.max(FY+18,Math.min(FY+FH-18,ty));
-        if(bot.pers==='aggressive'){const tdx=FX-ball.x,tdy=FY+FH/2-ball.y,gl=Math.sqrt(tdx*tdx+tdy*tdy)||1;tx=ball.x-tdx/gl*FW*.08;ty=ball.y-tdy/gl*FH*.08;}
-      }else if(bot.aiState==='defend'){
-        tx=FX+FW*.84+bi*25; ty=FY+FH*(0.32+bi*.18);
-        if(Math.hypot(bot.x-ball.x,bot.y-ball.y)<FW*.18){tx=ball.x;ty=ball.y;}
-      }else{tx=ball.x*.55+FX+FW*(.58+bi*.1)*.45;ty=ball.y*.5+FY+FH*(.38+bi*.12);}
-      let sepX=0,sepY=0;
-      g.bots.forEach((o,oi)=>{if(oi===bi)return;const od=Math.hypot(bot.x-o.x,bot.y-o.y);if(od<bot.w*1.6&&od>0){sepX+=(bot.x-o.x)/od*55;sepY+=(bot.y-o.y)/od*55;}});
-      const dx=tx-bot.x,dy=ty-bot.y,dl=Math.sqrt(dx*dx+dy*dy)||1;
-      const bs=SOLO_BSPD*(1+bi*.12)*(bot.pers==='aggressive'?1.16:bot.pers==='defensive'?.93:1);
-      bot.vx+=(dx/dl*bs+sepX)*dt*2.6; bot.vy+=(dy/dl*bs+sepY)*dt*2.6;
-      bot.vx*=SOLO_FRIC; bot.vy*=SOLO_FRIC;
+
+      let tx, ty;
+      const ballVelPred = .25 + bi*.06;
+
+      if(bot.aiState==='attack'||bot.aiState==='chase'){
+        // Prédit la position de la balle
+        const predBX = ball.x + ball.vx*ballVelPred*30;
+        const predBY = ball.y + ball.vy*ballVelPred*30;
+        // Se positionne derrière la balle par rapport au but adverse (FX = but gauche = but du joueur)
+        // Les bots tirent vers la GAUCHE donc se placent à DROITE de la balle
+        const toBallX = predBX - botGoalX;
+        const toBallY = predBY - goalCY;
+        const toBallLen = Math.sqrt(toBallX*toBallX+toBallY*toBallY)||1;
+        if(bot.aiState==='attack'){
+          // Se place derrière la balle pour la pousser vers le but joueur (gauche)
+          tx = predBX + (toBallX/toBallLen) * (bot.w * 1.2);
+          ty = predBY + (toBallY/toBallLen) * (bot.h * 1.2);
+        } else {
+          tx = predBX;
+          ty = predBY;
+        }
+        tx = Math.max(FX+bot.w, Math.min(FX+FW-bot.w, tx));
+        ty = Math.max(FY+bot.h, Math.min(FY+FH-bot.h, ty));
+      } else if(bot.aiState==='defend'){
+        // Revient défendre son but (droite)
+        tx = FX+FW*.82 + bi*18;
+        ty = FY + FH*(0.3 + bi*.2);
+        // Si la balle est proche, fonce dessus
+        if(Math.hypot(bot.x-ball.x, bot.y-ball.y) < FW*.22){ tx=ball.x; ty=ball.y; }
+      } else if(bot.aiState==='wait'||bot.aiState==='position'){
+        // Position stratégique côté bot
+        tx = FX+FW*(.62+bi*.1);
+        ty = FY + FH*(.3+bi*.2);
+      }
+
+      // Séparation entre bots pour éviter qu'ils se superposent
+      let sepX=0, sepY=0;
+      g.bots.forEach((o,oi)=>{
+        if(oi===bi)return;
+        const od=Math.hypot(bot.x-o.x, bot.y-o.y);
+        if(od<bot.w*1.8&&od>0){sepX+=(bot.x-o.x)/od*70; sepY+=(bot.y-o.y)/od*70;}
+      });
+      // Séparation avec le joueur
+      const pdist=Math.hypot(bot.x-g.player.x, bot.y-g.player.y);
+      if(pdist<bot.w*1.6&&pdist>0){sepX+=(bot.x-g.player.x)/pdist*55;sepY+=(bot.y-g.player.y)/pdist*55;}
+
+      const dx=tx-bot.x, dy=ty-bot.y, dl=Math.sqrt(dx*dx+dy*dy)||1;
+      const diffFactor = bot.pers==='aggressive' ? 1.15 : bot.pers==='defensive' ? 0.88 : 1.0;
+      const bs = SOLO_BSPD * (1+bi*.08) * diffFactor;
+      bot.vx += (dx/dl*bs + sepX)*dt*2.8;
+      bot.vy += (dy/dl*bs + sepY)*dt*2.8;
+      bot.vx *= SOLO_FRIC; bot.vy *= SOLO_FRIC;
       const bv=Math.sqrt(bot.vx*bot.vx+bot.vy*bot.vy);
-      if(bv>bs*1.32){bot.vx=bot.vx/bv*bs*1.32;bot.vy=bot.vy/bv*bs*1.32;}
-      if(bv>8)bot.angle=Math.atan2(bot.vy,bot.vx);
+      if(bv>bs*1.3){bot.vx=bot.vx/bv*bs*1.3; bot.vy=bot.vy/bv*bs*1.3;}
+      if(bv>8) bot.angle=Math.atan2(bot.vy,bot.vx);
       bot.x+=bot.vx*dt; bot.y+=bot.vy*dt;
-      bot.x=Math.max(FX+bot.w/2,Math.min(FX+FW-bot.w/2,bot.x));
-      bot.y=Math.max(FY+bot.h/2,Math.min(FY+FH-bot.h/2,bot.y));
-      if(bv>75)bot.trail.push({x:bot.x,y:bot.y,t:.65});
-      bot.trail=bot.trail.filter(t=>{t.t-=dt*4;return t.t>0;});
-      ballCollideLocal(bot,g.ball);
+      bot.x=Math.max(FX+bot.w/2, Math.min(FX+FW-bot.w/2, bot.x));
+      bot.y=Math.max(FY+bot.h/2, Math.min(FY+FH-bot.h/2, bot.y));
+      if(bv>60) bot.trail.push({x:bot.x, y:bot.y, t:.65});
+      bot.trail=bot.trail.filter(t=>{t.t-=dt*4; return t.t>0;});
+      ballCollideLocal(bot, g.ball);
     });
-    ballCollideLocal(p,g.ball);
+    ballCollideLocal(p, g.ball);
     g.bots.forEach(bot=>carCarCollideLocal(p,bot));
-    for(let i=0;i<g.bots.length;i++)for(let j=i+1;j<g.bots.length;j++)carCarCollideLocal(g.bots[i],g.bots[j]);
+    for(let i=0;i<g.bots.length;i++) for(let j=i+1;j<g.bots.length;j++) carCarCollideLocal(g.bots[i],g.bots[j]);
     // Physique balle solo
     const b=g.ball;
     b.x+=b.vx*dt*60; b.y+=b.vy*dt*60;
@@ -2194,7 +2288,8 @@ setTimeout(renderMenuCar,120);
 
 function showMobileControls(v){
   const mc=document.getElementById('mobile-controls'); if(!mc) return;
-  const touch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+  // Detect touch more reliably
+  const touch=('ontouchstart' in window)||navigator.maxTouchPoints>0||navigator.msMaxTouchPoints>0||window.matchMedia('(pointer:coarse)').matches;
   if(v&&touch) mc.classList.add('ingame'); else mc.classList.remove('ingame');
 }
 
