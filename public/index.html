@@ -95,7 +95,7 @@ body{
 .rlp{
   background:var(--ink);
   border:1px solid var(--sep);
-  border-top:1px solid rgba(160,200,230,.3);
+  border-top:2px solid var(--hi);
   backdrop-filter:blur(18px);
   position:relative;
 }
@@ -325,7 +325,33 @@ body{
 .news-tag{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--hi);letter-spacing:2px;}
 
 /* ─── SUB-SCREENS ───────────────────────────────── */
-.sub-wrap{width:min(700px,96vw);display:flex;flex-direction:column;gap:14px;}
+.sub-wrap{width:min(700px,96vw);display:flex;flex-direction:column;gap:14px;align-items:center;}
+.sub-wrap .rlp{width:100%;}
+
+/* ─── RARITY SYSTEM ──────────────────────────────── */
+:root {
+  --r-common:   #8899aa;
+  --r-uncommon: #44cc77;
+  --r-rare:     #4da6ff;
+  --r-epic:     #aa44ff;
+  --r-legendary:#ff9900;
+}
+.rarity-badge {
+  font-family:'Share Tech Mono',monospace;
+  font-size:8px;letter-spacing:3px;text-transform:uppercase;
+  padding:2px 8px;border:1px solid currentColor;display:inline-block;
+}
+
+/* ─── SHOP ROTATION TIMER ─────────────────────────── */
+#shop-rotation-bar {
+  width:100%;height:3px;background:rgba(80,160,255,.1);position:relative;overflow:hidden;margin-bottom:6px;
+}
+#shop-rotation-fill {
+  position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--hi2),var(--hi));transition:width .5s linear;
+}
+#shop-next-timer {
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(140,180,220,.4);
+}
 
 /* ─── RESPONSIVE ─────────────────────────────────── */
 @media(max-width:720px){
@@ -376,6 +402,25 @@ body{
 #play-mode-multi:hover .play-mode-hover-overlay{opacity:1;}
 #play-mode-solo:hover img,#play-mode-multi:hover img{filter:brightness(1.1) !important;}
 #screen-play{overflow-y:auto;}
+
+/* ─── LEGENDARY SHIMMER ───────────────────────────── */
+@keyframes lgShimmer{
+  0%{transform:translateX(-100%)}
+  60%,100%{transform:translateX(200%)}
+}
+
+/* ─── ALL SCREENS CENTER ──────────────────────────── */
+#screen-play-solo,#screen-play-multi,#screen-garage,
+#screen-settings,#screen-create-server,#screen-join-server{
+  overflow-y:auto;
+  padding:clamp(20px,5vh,60px) 20px clamp(60px,8vh,100px);
+}
+#screen-play-solo .sub-wrap,
+#screen-garage .sub-wrap,
+#screen-settings .sub-wrap{
+  align-items:center;
+  text-align:left;
+}
 </style>
 </head>
 <body>
@@ -604,13 +649,51 @@ body{
 
 <!-- SHOP -->
 <div class="screen" id="screen-shop">
-<div class="sub-wrap">
-<div class="screen-title">BOUTIQUE</div>
-  <div class="rlp" style="padding:18px;width:520px;max-width:96vw">
-    <div id="shop-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-height:360px;overflow-y:auto"></div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:960px;padding:0 clamp(14px,3vw,40px);padding-bottom:80px;padding-top:clamp(20px,4vh,40px);">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;width:100%;margin-bottom:8px;padding-bottom:14px;border-bottom:1px solid rgba(80,160,255,.1);">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:6px;color:var(--hi);opacity:.6;margin-bottom:6px;">ROTATION HORAIRE</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(28px,5vw,52px);font-weight:800;letter-spacing:4px;color:#fff;text-transform:uppercase;text-shadow:0 0 30px rgba(80,160,255,.25);">BOUTIQUE</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;gap:6px;padding-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(140,180,220,.35);">RENOUVELLEMENT DANS</div>
+          <div id="shop-next-timer" style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--hi);">--:--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rotation progress bar -->
+    <div id="shop-rotation-bar" style="width:100%;height:2px;background:rgba(80,160,255,.08);position:relative;overflow:hidden;margin-bottom:clamp(12px,2vh,20px);">
+      <div id="shop-rotation-fill" style="position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--hi2),var(--hi));width:0%;transition:width 1s linear;"></div>
+    </div>
+
+    <!-- Rarity legend -->
+    <div style="display:flex;gap:clamp(8px,2vw,18px);width:100%;margin-bottom:clamp(10px,2vh,18px);flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--r-common);">
+        <div style="width:8px;height:8px;background:var(--r-common);opacity:.7;"></div>COMMUN
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--r-uncommon);">
+        <div style="width:8px;height:8px;background:var(--r-uncommon);"></div>PEU COMMUN
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--r-rare);">
+        <div style="width:8px;height:8px;background:var(--r-rare);"></div>RARE
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--r-epic);">
+        <div style="width:8px;height:8px;background:var(--r-epic);"></div>ÉPIQUE
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--r-legendary);">
+        <div style="width:8px;height:8px;background:var(--r-legendary);"></div>LÉGENDAIRE
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div id="shop-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:clamp(8px,1.5vw,14px);width:100%;max-height:calc(100vh - 320px);overflow-y:auto;padding-right:4px;"></div>
+
+    <button class="bbtn" onclick="showScreen('screen-main')" style="margin-top:clamp(14px,2vh,24px);">← RETOUR</button>
   </div>
-  <button class="bbtn" onclick="showScreen('screen-main')" style="margin-top:0">← RETOUR</button>
-</div>
 </div>
 
 <!-- SETTINGS -->
@@ -764,20 +847,45 @@ body{
 
 <!-- JOIN SERVER -->
 <div class="screen" id="screen-join-server">
-<div class="sub-wrap">
-<div class="screen-title">REJOINDRE UN SERVEUR</div>
-  <div class="rlp" style="padding:22px;width:460px;max-width:96vw">
-    <div class="gsec">ID DU SERVEUR</div>
-    <div style="margin:12px 0">
-      <input id="join-server-id" type="text" maxlength="6" style="width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--hi);font-family:'Orbitron',sans-serif;font-size:24px;padding:12px;outline:none;text-align:center;letter-spacing:8px;text-transform:uppercase" placeholder="XXXXXX">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:520px;padding:0 20px;">
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:clamp(20px,4vh,40px);width:100%;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:8px;color:var(--hi);opacity:.7;text-transform:uppercase;margin-bottom:10px;">MULTIJOUEUR</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(26px,4.5vw,46px);font-weight:800;letter-spacing:5px;color:#fff;text-transform:uppercase;text-shadow:0 0 40px rgba(80,160,255,.3);">REJOINDRE</div>
+      <div style="width:50px;height:2px;background:var(--hi);margin:10px auto 0;opacity:.6;"></div>
     </div>
-    <div id="join-error" style="color:var(--red);font-size:12px;min-height:18px;letter-spacing:1px;margin-bottom:8px"></div>
-    <div style="display:flex;gap:10px">
-      <button class="pbtn" onclick="joinServerAction()">REJOINDRE</button>
-      <button class="bbtn" style="margin-top:0" onclick="showScreen('screen-play')">← RETOUR</button>
+
+    <!-- Card -->
+    <div style="width:100%;background:rgba(5,10,20,.88);border:1px solid rgba(80,160,255,.18);border-top:2px solid var(--hi);padding:clamp(24px,4vw,36px);position:relative;backdrop-filter:blur(14px);">
+      <!-- Corner accent -->
+      <div style="position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 32px 32px 0;border-color:transparent var(--hi) transparent transparent;opacity:.3;"></div>
+
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:4px;color:rgba(140,180,220,.5);margin-bottom:14px;">ENTREZ L'IDENTIFIANT DU SERVEUR</div>
+
+      <!-- Input -->
+      <div style="position:relative;margin-bottom:8px;">
+        <input id="join-server-id" type="text" maxlength="6"
+          style="width:100%;background:rgba(80,160,255,.05);border:1px solid rgba(80,160,255,.25);border-bottom:2px solid var(--hi);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:800;padding:16px 20px;outline:none;text-align:center;letter-spacing:12px;text-transform:uppercase;transition:all .15s;"
+          placeholder="······"
+          onfocus="this.style.borderBottomColor='#fff';this.style.background='rgba(80,160,255,.09)'"
+          onblur="this.style.borderBottomColor='var(--hi)';this.style.background='rgba(80,160,255,.05)'">
+        <!-- Scan line decoration -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--hi),transparent);opacity:.4;pointer-events:none;"></div>
+      </div>
+
+      <!-- Error -->
+      <div id="join-error" style="color:var(--red);font-family:'Share Tech Mono',monospace;font-size:11px;min-height:20px;letter-spacing:2px;margin-bottom:16px;text-align:center;"></div>
+
+      <!-- Hint -->
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(140,180,220,.3);text-align:center;margin-bottom:24px;">DEMANDEZ L'ID À L'HÔTE DE LA PARTIE</div>
+
+      <!-- Buttons -->
+      <div style="display:flex;gap:12px;">
+        <button class="pbtn" onclick="joinServerAction()" style="flex:1;font-size:clamp(14px,2vw,17px);padding:16px;">REJOINDRE ▶</button>
+        <button class="bbtn" onclick="showScreen('screen-play-multi')" style="margin-top:0;padding:16px 24px;">← RETOUR</button>
+      </div>
     </div>
   </div>
-</div>
 </div>
 
 <script>
@@ -817,17 +925,49 @@ const DECALS  = ['Aucun','Flammes','Éclairs','Camouflage','Vagues','Dragon'];
 const WHEELS  = ['Stock','Nitro','Chrono','Saffron','OEM','Infinium'];
 const COLS1   = ['#1a6fff','#ff2244','#00cc55','#ff6b00','#aa00ff','#ffffff','#ffdd00','#00cccc'];
 const COLS2   = ['#ff6b00','#1a6fff','#111111','#ffffff','#ff2244','#ffdd00','#00cc55','#aa00ff'];
-const SHOP    = [
-  {id:'w_inf',name:'Infinium',type:'ROUES',icon:'⚙️',price:80,col:'#ffd700'},
-  {id:'w_nit',name:'Nitro',type:'ROUES',icon:'🔵',price:30,col:'#00b4ff'},
-  {id:'d_drg',name:'Dragon',type:'DÉCAL',icon:'🐉',price:60,col:'#aa00ff'},
-  {id:'d_fl', name:'Flammes',type:'DÉCAL',icon:'🔥',price:25,col:'#ff4400'},
-  {id:'w_saf',name:'Saffron',type:'ROUES',icon:'🟡',price:45,col:'#ff9900'},
-  {id:'d_ltg',name:'Éclairs',type:'DÉCAL',icon:'⚡',price:20,col:'#ffdd00'},
-  {id:'c_fen',name:'Fennec',type:'CARROSSERIE',icon:'🚗',price:100,col:'#ff6b00'},
-  {id:'d_cam',name:'Camo',type:'DÉCAL',icon:'🌿',price:20,col:'#00cc55'},
-  {id:'w_oem',name:'OEM',type:'ROUES',icon:'⭕',price:15,col:'#888'},
+// Rarités : 0=commun, 1=peu commun, 2=rare, 3=épique, 4=légendaire
+const RARITY = [
+  {key:0, label:'COMMUN',    col:'#8899aa', glow:'rgba(136,153,170,'},
+  {key:1, label:'PEU COMMUN',col:'#44cc77', glow:'rgba(68,204,119,'},
+  {key:2, label:'RARE',      col:'#4da6ff', glow:'rgba(77,166,255,'},
+  {key:3, label:'ÉPIQUE',    col:'#aa44ff', glow:'rgba(170,68,255,'},
+  {key:4, label:'LÉGENDAIRE',col:'#ff9900', glow:'rgba(255,153,0,'},
 ];
+const ALL_SHOP = [
+  {id:'w_oem', name:'OEM',      type:'ROUES',       icon:'⭕', price:15,  col:'#888888', rarity:0},
+  {id:'d_cam', name:'Camo',     type:'DÉCAL',       icon:'🌿', price:20,  col:'#00cc55', rarity:0},
+  {id:'d_ltg', name:'Éclairs',  type:'DÉCAL',       icon:'⚡', price:20,  col:'#ffdd00', rarity:1},
+  {id:'d_fl',  name:'Flammes',  type:'DÉCAL',       icon:'🔥', price:25,  col:'#ff4400', rarity:1},
+  {id:'w_nit', name:'Nitro',    type:'ROUES',       icon:'🔵', price:30,  col:'#00b4ff', rarity:1},
+  {id:'w_saf', name:'Saffron',  type:'ROUES',       icon:'🟡', price:45,  col:'#ff9900', rarity:2},
+  {id:'d_drg', name:'Dragon',   type:'DÉCAL',       icon:'🐉', price:60,  col:'#aa00ff', rarity:2},
+  {id:'c_fen', name:'Fennec',   type:'CARROSSERIE', icon:'🚗', price:100, col:'#ff6b00', rarity:3},
+  {id:'w_inf', name:'Infinium', type:'ROUES',       icon:'⚙️', price:80,  col:'#ffd700', rarity:3},
+  {id:'d_wv',  name:'Vagues',   type:'DÉCAL',       icon:'🌊', price:35,  col:'#0099ff', rarity:2},
+  {id:'w_chro',name:'Chrono',   type:'ROUES',       icon:'⏱', price:55,  col:'#00cccc', rarity:2},
+  {id:'c_dom', name:'Dominus X',type:'CARROSSERIE', icon:'🏎️', price:200, col:'#ff0066', rarity:4},
+  {id:'d_pls', name:'Pulse',    type:'DÉCAL',       icon:'💫', price:90,  col:'#ff44ff', rarity:3},
+  {id:'w_aur', name:'Aurora',   type:'ROUES',       icon:'🌈', price:160, col:'#ff9900', rarity:4},
+  {id:'d_blk', name:'Blackout', type:'DÉCAL',       icon:'🖤', price:120, col:'#444455', rarity:3},
+];
+// Current shop rotation — 6 items chosen by the current hour seed
+let SHOP = [];
+function getShopRotation() {
+  const now = new Date();
+  const seed = now.getFullYear() * 100000 + (now.getMonth()+1) * 1000 + now.getDate() * 24 + now.getHours();
+  // Seeded shuffle: always pick same 6 items for the same hour
+  const arr = [...ALL_SHOP];
+  let s = seed;
+  for(let i=arr.length-1;i>0;i--){s=(s*1664525+1013904223)&0xffffffff;const j=Math.abs(s)%(i+1);[arr[i],arr[j]]=[arr[j],arr[i]];}
+  // Ensure at least 1 epic/legendary if possible
+  const guaranteed = arr.filter(x=>x.rarity>=3).slice(0,1);
+  const rest = arr.filter(x=>x.rarity<3).slice(0,5);
+  return [...guaranteed,...rest].slice(0,6);
+}
+function initShop(){ SHOP = getShopRotation(); }
+initShop();
+
+// Expose legacy SHOP ref used elsewhere
 
 // =====================================================================
 // MAP THEMES
@@ -875,7 +1015,9 @@ const MAPS = [
 // UTILS
 // =====================================================================
 function notify(msg) { const n=document.getElementById('notif'); n.textContent=msg; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),2800); }
-function updateVak() { document.getElementById('vak-amount').textContent = S.vak; }
+function updateVak() {
+  document.getElementById('vak-amount').textContent = S.vak;
+}
 function updatePlayerBar() {
   const lvl=getLevel(S.xp), lvlXP=getXPForLevel(lvl), nextXP=getXPForLevel(lvl+1);
   const pct=Math.min(100,Math.floor((S.xp-lvlXP)/(nextXP-lvlXP)*100));
@@ -1075,22 +1217,102 @@ function applyGarage() {
 }
 
 // =====================================================================
-// SHOP
+// SHOP ROTATION TIMER
+// =====================================================================
+function getMinutesUntilNextHour() {
+  const now = new Date();
+  return 60 - now.getMinutes() - now.getSeconds()/60;
+}
+function updateShopTimer() {
+  const now = new Date();
+  const secLeft = (60 - now.getMinutes())*60 - now.getSeconds();
+  const m = String(Math.floor(secLeft/60)).padStart(2,'0');
+  const s = String(secLeft%60).padStart(2,'0');
+  const timerEl = document.getElementById('shop-next-timer');
+  if(timerEl) timerEl.textContent = `${m}:${s}`;
+  // Progress bar: fraction of the current hour elapsed
+  const elapsed = (now.getMinutes()*60 + now.getSeconds());
+  const pct = (elapsed / 3600) * 100;
+  const fill = document.getElementById('shop-rotation-fill');
+  if(fill) fill.style.width = pct+'%';
+  // Check if hour changed — refresh shop
+  if(secLeft <= 1) { initShop(); renderShop(); }
+}
+setInterval(updateShopTimer, 1000);
+
+// =====================================================================
+// SHOP RENDER
 // =====================================================================
 function renderShop() {
-  const g=document.getElementById('shop-grid'); g.innerHTML='';
+  initShop(); // ensure current rotation
+  const g=document.getElementById('shop-grid'); if(!g) return;
+  g.innerHTML='';
+  updateShopTimer();
+
   SHOP.forEach(it=>{
     const owned=S.owned.includes(it.id);
+    const rar = RARITY[it.rarity] || RARITY[0];
+    const isLegendary = it.rarity === 4;
+    const isEpic = it.rarity === 3;
+
     const d=document.createElement('div');
-    d.style.cssText=`background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);padding:13px 9px;text-align:center;position:relative;cursor:${owned?'default':'pointer'};transition:all .15s;`;
-    d.innerHTML=`<div style="height:2px;position:absolute;top:0;left:0;right:0;background:${it.col}"></div><div style="font-size:30px;margin-bottom:6px">${it.icon}</div><div style="font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:3px">${it.name}</div><div style="font-size:9px;color:rgba(255,255,255,.32);letter-spacing:2px;margin-bottom:6px">${it.type}</div><div style="font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:${owned?'rgba(255,255,255,.28)':'var(--gold)'}">${owned?'✓':it.price+' VAK'}</div>`;
-    if(!owned){d.onmouseenter=()=>{d.style.borderColor='var(--accent)';d.style.background='rgba(0,180,255,.08)'};d.onmouseleave=()=>{d.style.borderColor='rgba(255,255,255,.08)';d.style.background='rgba(255,255,255,.03)'};d.onclick=()=>buyItem(it);}
+    d.style.cssText=`
+      background:rgba(4,8,18,.9);
+      border:1px solid ${rar.glow}0.15);
+      border-top:2px solid ${owned?rar.glow+'0.3)':rar.col};
+      padding:18px 14px 16px;
+      text-align:center;
+      position:relative;
+      cursor:${owned?'default':'pointer'};
+      transition:all .2s;
+      overflow:hidden;
+      ${isLegendary && !owned ? `box-shadow: 0 0 18px ${rar.glow}0.12), inset 0 0 30px ${rar.glow}0.04);` : ''}
+    `;
+
+    // Animated shimmer for legendary
+    const shimmer = isLegendary && !owned ? `
+      <div style="position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,${rar.glow}0.08) 50%,transparent 60%);animation:lgShimmer 2.5s ease-in-out infinite;pointer-events:none;"></div>
+    ` : '';
+
+    // Corner triangle
+    const cornerCol = owned ? rar.glow+'0.15)' : rar.col;
+    d.innerHTML = `
+      ${shimmer}
+      <div style="position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 20px 20px 0;border-color:transparent ${cornerCol} transparent transparent;${owned?'opacity:.3':''}"></div>
+      ${owned ? `<div style="position:absolute;top:4px;left:8px;font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:2px;color:${rar.col};opacity:.6;">ACQUIS</div>` : ''}
+      <div style="font-size:38px;margin-bottom:10px;line-height:1;${owned?'filter:grayscale(50%) opacity(.6)':''};">${it.icon}</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:2px;color:${owned?'rgba(255,255,255,.35)':'#fff'};margin-bottom:4px;text-transform:uppercase;">${it.name}</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(140,180,220,.4);letter-spacing:3px;margin-bottom:8px;">${it.type}</div>
+      <div style="display:inline-block;font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:2px;color:${rar.col};border:1px solid ${rar.glow}0.4);padding:2px 7px;margin-bottom:10px;background:${rar.glow}0.08);">${rar.label}</div>
+      <div style="height:1px;background:linear-gradient(90deg,transparent,${rar.glow}0.2),transparent);margin-bottom:10px;"></div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:${owned?'18':'20'}px;font-weight:800;color:${owned?'rgba(140,180,220,.3)':rar.col};letter-spacing:2px;">${owned?'✓ POSSÉDÉ':it.price+' VAK'}</div>
+    `;
+
+    if(!owned){
+      d.onmouseenter=()=>{
+        d.style.borderColor = rar.glow+'0.5)';
+        d.style.borderTopColor = rar.col;
+        d.style.background = `rgba(8,14,28,.95)`;
+        d.style.boxShadow = `0 0 28px ${rar.glow}0.2), inset 0 0 20px ${rar.glow}0.05)`;
+        d.style.transform = 'translateY(-4px)';
+      };
+      d.onmouseleave=()=>{
+        d.style.borderColor = rar.glow+'0.15)';
+        d.style.borderTopColor = rar.col;
+        d.style.background = 'rgba(4,8,18,.9)';
+        d.style.boxShadow = isLegendary ? `0 0 18px ${rar.glow}0.12)` : 'none';
+        d.style.transform = 'translateY(0)';
+      };
+      d.onclick=()=>buyItem(it);
+    }
     g.appendChild(d);
   });
 }
 function buyItem(it) {
   if(S.vak<it.price){notify('❌ Pas assez de VAK !');return;}
-  S.vak-=it.price; S.owned.push(it.id); save(); updateVak(); renderShop(); notify(`✅ ${it.name} acheté !`);
+  S.vak-=it.price; S.owned.push(it.id); save(); updateVak(); renderShop();
+  const rar = RARITY[it.rarity]||RARITY[0];
+  notify(`✅ ${it.name} acheté ! [${rar.label}]`);
 }
 
 // =====================================================================
