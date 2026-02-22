@@ -2218,6 +2218,36 @@ function handleServerMsg(msg) {
     if(game&&!game._ended){game._ended=true;endGame();}
   }
 
+  if(msg.type==='PLAYER_LEFT'){
+    // Un joueur a quitté pendant la partie — victoire par forfait pour ceux qui restent
+    if(!game||game._ended) return;
+    // Retirer le joueur distant de l'affichage
+    if(game.remotePlayers && msg.playerId){
+      delete game.remotePlayers[msg.playerId];
+    }
+    // Forcer une victoire : on est le survivant
+    game._ended = true;
+    game.running = false;
+    cancelAnimationFrame(game.animFrame);
+    _clearGoalTimers();
+    document.getElementById('goal-countdown').classList.remove('show');
+    // Afficher l'écran de fin avec victoire par forfait
+    const myScore  = myTeam===0?msg.scoreA:msg.scoreB;
+    const oppScore = myTeam===0?msg.scoreB:msg.scoreA;
+    game.scoreP   = myScore;
+    game.scoreOpp = oppScore;
+    const name = msg.name || 'Adversaire';
+    notify(`⚠️ ${name} a quitté la partie — Victoire par forfait !`);
+    // Petite pause pour laisser la notif s'afficher, puis écran fin
+    setTimeout(()=>{
+      if(!game) return;
+      // Forcer la victoire dans endGame
+      game.scoreP   = Math.max(myScore, oppScore + 1); // garantit victoire
+      game.scoreOpp = oppScore;
+      endGame();
+    }, 1200);
+  }
+
   if(msg.type==='ERROR'){
     const errEl=document.getElementById('join-error');
     if(errEl)errEl.textContent='❌ '+msg.msg;
