@@ -1004,14 +1004,20 @@ function resetPositions(g){
   g.bots.forEach((bot,i)=>{bot.x=g.FX+g.FW*(.72+i*.07);bot.y=g.FY+g.FH*(.28+i*.22);bot.vx=0;bot.vy=0;bot.angle=Math.PI;});
 }
 function startGoalReset(g){
-  g.running=false;cancelAnimationFrame(g.animFrame);resetPositions(g);
-  const el=document.getElementById('goal-countdown'),num=document.getElementById('gc-num');
-  el.classList.add('show');let c=3;num.textContent=c;
-  const iv=setInterval(()=>{c--;
-    if(c===0){num.textContent='GO!';num.style.color='var(--accent2)';}
-    else if(c<0){clearInterval(iv);el.classList.remove('show');num.style.color='var(--accent)';if(game&&game.timeLeft>0){game.running=true;game.lastTime=performance.now();gameLoop(performance.now());}}
-    else{num.textContent=c;num.style.color='#fff';}
-  },1000);
+  g.running=false; cancelAnimationFrame(g.animFrame); resetPositions(g);
+  // Attendre la fin du message "BUT !" (1800ms) avant le compte à rebours
+  setTimeout(()=>{
+    const el=document.getElementById('goal-countdown'),num=document.getElementById('gc-num');
+    el.classList.add('show'); let c=3; num.textContent=c; num.style.color='#fff';
+    const iv=setInterval(()=>{
+      c--;
+      if(c===0){num.textContent='GO!';num.style.color='var(--accent2)';}
+      else if(c<0){
+        clearInterval(iv);el.classList.remove('show');num.style.color='var(--accent)';
+        if(game&&game.timeLeft>0){game.running=true;game.lastTime=performance.now();gameLoop(performance.now());}
+      } else{num.textContent=c;num.style.color='#fff';}
+    },1000);
+  },1800);
 }
 
 function updateTimerHUD(){
@@ -1355,12 +1361,15 @@ function handleServerMsg(msg) {
     if(game.player){delete game.player._tx;delete game.player._ty;}
     if(game.remotePlayers)Object.values(game.remotePlayers).forEach(p=>{delete p._tx;delete p._ty;});
     game.running=false; cancelAnimationFrame(game.animFrame);
-    const el=document.getElementById('goal-countdown'),num=document.getElementById('gc-num');
-    el.classList.add('show');
-    [[0,'3','#fff'],[900,'2','#fff'],[1800,'1','#fff'],[2700,'GO!','var(--accent2)']].forEach(([d,t,c])=>{
-      setTimeout(()=>{if(el.classList.contains('show')){num.textContent=t;num.style.color=c;}},d);
-    });
-    setTimeout(()=>{el.classList.remove('show');num.style.color='var(--accent)';if(game&&!game.running){game.running=true;game.lastTime=performance.now();gameLoop(performance.now());}},3600);
+    // Attendre la fin du message "BUT !" avant le compte à rebours
+    setTimeout(()=>{
+      const el=document.getElementById('goal-countdown'),num=document.getElementById('gc-num');
+      el.classList.add('show');
+      [[0,'3','#fff'],[1000,'2','#fff'],[2000,'1','#fff'],[3000,'GO!','var(--accent2)']].forEach(([d,t,c])=>{
+        setTimeout(()=>{if(el.classList.contains('show')){num.textContent=t;num.style.color=c;}},d);
+      });
+      setTimeout(()=>{el.classList.remove('show');num.style.color='var(--accent)';if(game&&!game.running){game.running=true;game.lastTime=performance.now();gameLoop(performance.now());}},3600);
+    },1800);
   }
 
   if(msg.type==='GAME_OVER'){
